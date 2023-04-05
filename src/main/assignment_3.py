@@ -11,7 +11,7 @@ def function(t: float, y: float):
     return t - (y**2)
 
 def euler(t0, y, h, t):
-    # temp = -0
+    temp = 0
 
     while t0 < t:
         temp = y
@@ -63,42 +63,60 @@ print("\n")
 # Number 3
 
 def gauss(a,b):
-    n = len(b)
-    Ab = np.concatenate((A, b.reshape(n,1)), axis = 1)
+    n = len(A)
 
     for i in range(n):
-        max_row = i
-        for j in range(i + 1, n):
-            if abs(Ab[j,i]) > abs(Ab[max_row, i]):
-                max_row = j
+        # Finding pivot
+        pivot = abs(A[i][i])
+        pivot_row = i
+        for j in range(i+1, n):
+            if abs(A[i][j]) > pivot:
+                pivot = abs(A[j][i])
+                pivot_row = j
 
-    Ab[[i,max_row], :] = Ab[[max_row], :]
+        # Swap pivot row and current row if needed
+        if pivot_row != i:
+            A[i], A[pivot_row] = A[pivot_row], A[i]
+            b[i], b[pivot_row] = b[pivot_row], b[i]
 
-    pivot = Ab[i, i]
-    Ab[i, :] = Ab[i, :] / pivot
+        # Eliminate current variable
+        for j in range(i+1, n):
+            factor = A[j][i] / A[i][i]
+            for k in range(i, n):
+                A[j][k] -= factor * A[i][k]
+            b[j] -= factor * b[i]
 
-    for j in range(i + 1, n):
-        factor = Ab[j, i]
-        Ab[j, :] -= factor * Ab[i, :]
-
-    for i in range(n - 1, -1, -1):
-        for j in range(i - 1, -1, -1):
-            factor = Ab[j, i]
-            Ab[j, :] -= factor * Ab[i, :]
-
-    x = Ab[:, n]
+    # Backwards substitution
+    x = [0 for _ in range(n)]
+    for i in range(n-1, -1, -1):
+        x[i] = b[i]
+        for j in range(i+1, n):
+            x[i] -= A[i][j] * x[j]
+        x[i] /= A[i][i]
     return x
 
 # Initial
-A = np.array([[2,-1,1],
-             [1,3,1],
-             [-1,5,4]])
-b = np.array([6,0,-3])
+A = [[2, -1, 1], [1, 3, 1], [-1, 5, 4]]
+b = [6, 0, -3]
 
-matrix1 = np.array(x, dtype = np.double)
-print(matrix1)
+x = gauss(A, b)
+matrix = np.array(x, dtype=np.double)
+print(matrix)
+print("\n")
 
 # Number 4
+
+# Determinant
+def determ(matrix):
+    return np.linalg.det(matrix)
+
+# Couldn't quite figure out LU factorization
+
+matrix = np.array([[1, 1, 0, 3],
+                  [2, 1, -1, 1],
+                  [3, -1, -1, 2],
+                  [-1, 2, 3, -1]])
+print("%.5f" % np.array(determ(matrix)))
 
 print("\n")
 # Number 5
@@ -116,6 +134,7 @@ def check(a, b):
         if(abs(a[i][i]) < row_sum):
             return False
     return True
+
 
 b = 5
 a = [[9, 0, 5, 2, 1],
@@ -135,6 +154,7 @@ print("\n")
 
 def is_pos_def(A):
     return np.all(np.linalg.eigvals(A+A.transpose()) > 0)
+
 
 A = np.array([[2, 2, 1],
             [2, 3, 0],
